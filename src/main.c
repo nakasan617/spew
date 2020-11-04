@@ -38,7 +38,7 @@ size_t recursive_write(char *dirname, FILE *fp_w, size_t offset, list_t *metalis
         }
         if((stbuf.st_mode & S_IFMT) == S_IFDIR) {
             fprintf(stderr, "directory: %s\n", filename_qfd); 
-            offset = recursive_write(filename_qfd, NULL, offset, metalist);
+            offset = recursive_write(filename_qfd, fp_w, offset, metalist);
         } else {
             fprintf(stderr, "filename: %s\n", filename_qfd);
             FILE *fp_r = fopen(filename_qfd, "r");
@@ -120,10 +120,10 @@ int main(int argc, char **argv) {
             continue;
         }
         if((stbuf.st_mode & S_IFMT) == S_IFDIR) {
-            fprintf(stderr, "directory: %s\n", filename_qfd); 
+            //fprintf(stderr, "directory: %s\n", filename_qfd); 
             offset = recursive_write(filename_qfd, fp_w, offset, metalist);
         } else {
-            fprintf(stderr, "filename: %s\n", filename_qfd);
+            //fprintf(stderr, "filename: %s\n", filename_qfd);
             FILE *fp_r = fopen(filename_qfd, "r");
             if(!fp_r) {
                 fprintf(stderr, "could not open %s, exitting...\n", filename_qfd);

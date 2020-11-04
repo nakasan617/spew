@@ -35,9 +35,7 @@ int write_metadata(list_t *metalist, char dst[]) {
     }
 
     while((curr_file = pop_list(metalist))) {
-        printf("hi\n");
         fprintf(fp, "%lu %lu %s\n", curr_file->offset, curr_file->size, curr_file->name);
-        fprintf(stderr, "%lu %lu %s\n", curr_file->offset, curr_file->size, curr_file->name);
         free(curr_file);
     }
     fclose(fp);
