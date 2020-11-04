@@ -92,6 +92,7 @@ size_t recursive_write(char *dirname, FILE *fp_w, size_t offset, list_t *metalis
             //fprintf(stderr, "this is FIFO or pipe: %s\n", filename_qfd);
         } else {
             //fprintf(stderr, "should not be here exitting...\n");
+            exit(1);
         }
     }
 
