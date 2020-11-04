@@ -34,6 +34,8 @@ int append_list(void *ele, list_t *list) {
     if(list->last) {
         list->last->next = curr;
         list->last = curr;
+    } else {
+        list->last = curr;
     }
     return 0;
 }
@@ -53,6 +55,7 @@ void *pop_list(list_t *list) {
 
 void destroy_list(list_t *list) {
     while(list->size > 0) {
+        fprintf(stderr, "size: %d\n", list->size);
         pop_list(list);
     }
     free(list);

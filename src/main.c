@@ -16,7 +16,6 @@ size_t recursive_write(char *dirname, FILE *fp_w, size_t offset, list_t *metalis
     char page [4096];
     char *filename_qfd = malloc(PATH_MAX);
 
-
     if((dfd = opendir(dir)) == NULL) {
         fprintf(stderr, "Cannot open %s\n", dir);
         return -1;
@@ -39,7 +38,7 @@ size_t recursive_write(char *dirname, FILE *fp_w, size_t offset, list_t *metalis
         }
         if((stbuf.st_mode & S_IFMT) == S_IFDIR) {
             fprintf(stderr, "directory: %s\n", filename_qfd); 
-            recursive_write(filename_qfd, NULL, offset, metalist);
+            offset = recursive_write(filename_qfd, NULL, offset, metalist);
         } else {
             fprintf(stderr, "filename: %s\n", filename_qfd);
             FILE *fp_r = fopen(filename_qfd, "r");
@@ -52,6 +51,7 @@ size_t recursive_write(char *dirname, FILE *fp_w, size_t offset, list_t *metalis
                 fprintf(stderr, "adding metadata for %s failed, exitting...\n", filename_qfd);
                 exit(1);
             }
+            //print_metadata(metalist);
             
             size_t read;
             size_t wrote;
@@ -64,6 +64,7 @@ size_t recursive_write(char *dirname, FILE *fp_w, size_t offset, list_t *metalis
         }
     }
 
+    closedir(dfd);
     free(filename_qfd);
     return offset;
 }
@@ -76,13 +77,26 @@ int main(int argc, char **argv) {
     char *filename_qfd = malloc(PATH_MAX);
     list_t *metalist = init_metadata();
     size_t offset = 0;
-    FILE *fp_w = fopen(argv[1], "w");
+    char datafile [PATH_MAX];
+    char metafile [PATH_MAX];
+
+    dir = argv[1];
+    size_t dirlen = strlen(dir) - 1;
+    if(dir[dirlen] == '/') {
+        dir[dirlen] = '\0';
+    }
+        
+    strncpy(datafile, dir, PATH_MAX);
+    strncat(datafile, ".data", PATH_MAX);
+    strncpy(metafile, dir, PATH_MAX);
+    strncat(metafile, ".meta", PATH_MAX);
     
-    if(argc != 3) {
-       fprintf(stderr, "Usage: %s targetname dirname\n", argv[0]);
+    FILE *fp_w = fopen(datafile, "w");
+    
+    if(argc != 2) {
+       fprintf(stderr, "Usage: %s dirname\n", argv[0]);
        return EXIT_FAILURE; 
     }
-    dir = argv[2];
     if((dfd = opendir(dir)) == NULL) {
         fprintf(stderr, "Cannot open %s\n", dir);
         return EXIT_SUCCESS;
@@ -107,7 +121,7 @@ int main(int argc, char **argv) {
         }
         if((stbuf.st_mode & S_IFMT) == S_IFDIR) {
             fprintf(stderr, "directory: %s\n", filename_qfd); 
-            recursive_write(filename_qfd, fp_w, offset, metalist);
+            offset = recursive_write(filename_qfd, fp_w, offset, metalist);
         } else {
             fprintf(stderr, "filename: %s\n", filename_qfd);
             FILE *fp_r = fopen(filename_qfd, "r");
@@ -120,6 +134,7 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "adding metadata for %s failed, exitting...\n", filename_qfd);
                 exit(1);
             }
+            print_metadata(metalist);
             
             size_t read;
             size_t wrote;
@@ -135,6 +150,15 @@ int main(int argc, char **argv) {
     fclose(fp_w);
     closedir(dfd);
     free(filename_qfd);
+    if(write_metadata(metalist, metafile)) {
+        fprintf(stderr, "write metadata failed\n");
+        return EXIT_FAILURE;
+    }
+    file_t *node;
+    while(metalist->size > 0) {
+        node = pop_metadata(metalist);
+        free(node);
+    }
     destroy_metadata(metalist);
     return EXIT_SUCCESS;
 }
